@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# Configure grub. This script is overwriting the script vom element vm.
+
+set -eux
+set -o pipefail
+
+[ -n "$IMAGE_BLOCK_DEVICE" ]
+PART_DEV=$IMAGE_BLOCK_DEVICE
+BOOT_DEV=$(echo $IMAGE_BLOCK_DEVICE | sed -e 's#p1##' | sed -e 's#mapper/##')
+
+function install_grub {
+
+    install-packages grub-pc
+
+    # XXX: grub-probe on the nbd0/loop0 device returns nothing - workaround, manually
+    # specify modules. https://bugs.launchpad.net/ubuntu/+source/grub2/+bug/1073731
+    GRUBNAME=$(which grub-install) || echo "GRUB is not installed!"
+
+    # If no GRUB2 is found, fallback to extlinux
+    if [[ -z "$GRUBNAME" ]]; then
+        echo "No GRUB found. "
+        exit 1
+    fi
+
+    echo "Installing GRUB..."
+
+    GRUB_OPTS=${GRUB_OPTS:-""}
+    # XXX: This is buggy:
+    # - --target=i386-pc is invalid for non-i386/amd64 architectures
+    # - and for UEFI too.
+    #    GRUB_OPTS="$GRUB_OPTS --target=i386-pc"
+    if [[ ! $GRUB_OPTS == *--target* ]] && [[ $($GRUBNAME --version) =~ ' 2.' ]]; then
+        # /sys/ comes from the host machine. If the host machine is using EFI
+        # but the image being built doesn't have EFI boot-images installed we
+        # should set the --target to use a BIOS-based boot-image.
+        #
+        # * --target tells grub what's the target platform
+        # * the boot images are placed in /usr/lib/grub/<cpu>-<platform>
+        # * i386-pc is used for BIOS-based machines
+        # http://www.gnu.org/software/grub/manual/grub.html#Installation
+        #
+        if [ -d /sys/firmware/efi ]; then
+            if [ ! -d /usr/lib/grub/*-efi ]; then
+                case $ARCH in
+                    "x86_64"|"amd64")
+                        GRUB_OPTS="$GRUB_OPTS --target=i386-pc"
+                        ;;
+                    "i386")
+                        target=i386-pc
+                        if [ -e /proc/device-tree ]; then
+                            for x in /proc/device-tree/*; do
+                                if [ -e "$x" ]; then
+                                    target="i386-ieee1275"
+                                fi
+                            done
+                        fi
+                        GRUB_OPTS="$GRUB_OPTS --target=$target"
+                        ;;
+                esac
+            fi
+        fi
+    fi
+
+    $GRUBNAME --modules="biosdisk part_msdos" $GRUB_OPTS $BOOT_DEV
+
+    GRUB_CFG=/boot/grub/grub.cfg
+
+
+    # os-prober leaks /dev/sda into config file in dual-boot host
+    # Disable grub-os-prober to avoid the issue  while running
+    # grub-mkconfig
+    # Setting a flag to track whether the entry is already there in grub config
+
+    # force use of a LABEL:
+    # NOTE: Updating the grub config by hand once deployed should work, its just
+    # prepping it in a different environment that needs fiddling.
+    #sed -i "s%$PART_DEV%LABEL=cloudimg-rootfs%" $GRUB_CFG
+    #sed -i "s%search --no-floppy --fs-uuid --set=root .*$%search --no-floppy --set=root --label cloudimg-rootfs%" $GRUB_CFG
+    #sed -i "s%root=UUID=[A-Za-z0-9\-]*%root=LABEL=cloudimg-rootfs%" $GRUB_CFG
+
+    
+
+}
+
+DIB_EXTLINUX=${DIB_EXTLINUX:-0}
+if [ "$DIB_EXTLINUX" != "0" ]; then
+    install_extlinux
+else
+    install_grub
+fi

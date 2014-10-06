@@ -3,7 +3,8 @@
 set -eu
 set -o pipefail
 
-cat << EOF > /etc/yum.repos.d/sl6-latest.repo
+ls /etc/yum.repos.d/*.repo
+[[ $? -ne 0 ]] && cat << EOF > /etc/yum.repos.d/sl6-latest.repo
 [base]
 name=Scientific Linux 6 - base
 baseurl=http://www.nic.funet.fi/pub/Linux/INSTALL/scientific/6/x86_64/os

@@ -1,10 +1,9 @@
 #!/bin/bash
+YUM_REPO_DIR="/etc/yum.repos.d"
 
-set -eu
-set -o pipefail
+repo_files=($(ls $YUM_REPO_DIR/*.repo 2>/dev/null))
 
-ls /etc/yum.repos.d/*.repo
-[[ $? -ne 0 ]] && cat << EOF > /etc/yum.repos.d/sl6-latest.repo
+[[ ${#repo_files[@]} -eq 0 ]] && cat > $YUM_REPO_DIR/sl6-latest.repo <<EOF
 [base]
 name=Scientific Linux 6 - base
 baseurl=http://www.nic.funet.fi/pub/Linux/INSTALL/scientific/6/x86_64/os
@@ -23,3 +22,6 @@ baseurl=http://www.nic.funet.fi/pub/Linux/INSTALL/scientific/6/x86_64/updates/se
 gpgcheck=1
 gpgkey=http://www.nic.funet.fi/pub/Linux/INSTALL/scientific/6/x86_64/os/RPM-GPG-KEY-sl6
 EOF
+
+exit 0
+

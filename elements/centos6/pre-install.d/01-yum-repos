@@ -1,9 +1,9 @@
 #!/bin/bash
+YUM_REPO_DIR="/etc/yum.repos.d"
 
-set -eu
-set -o pipefail
+repo_files=($(ls $YUM_REPO_DIR/*.repo 2>/dev/null))
 
-cat << EOF > /etc/yum.repos.d/centos6-latest.repo
+[[ ${#repo_files[@]} -eq 0 ]] && cat > $YUM_REPO_DIR/centos6-latest.repo <<EOF
 [base]
 name=CentOS-6 - Base
 mirrorlist=http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=os
@@ -19,3 +19,5 @@ mirrorlist=http://mirrorlist.centos.org/?release=6&arch=x86_64&repo=updates
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
 EOF
+
+exit 0

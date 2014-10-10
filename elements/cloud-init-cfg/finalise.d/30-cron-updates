@@ -1,0 +1,43 @@
+#!/bin/bash
+
+case "$DISTRO_NAME" in
+	centos|fedora|rhel|rhel7|centos7)
+	cat > $CLOUD_INIT_CFG_DIR/30_cron_updates.cfg <<EOF
+write_files:
+- content: |
+    #!/bin/bash
+    yum --quiet --assumeyes update
+  path: $CLOUD_INIT_CRON_UPDATES_FILE
+  owner: root:root
+  permissions: '0755'
+EOF
+	;;
+
+	debian|ubuntu)
+	cat > $CLOUD_INIT_CFG_DIR/30_cron_updates.cfg <<EOF
+write_files:
+- content: |
+    #!/bin/bash
+    apt-get update --quiet --assume-yes
+    apt-get upgrade --quiet --assume-yes
+    apt-get autoclean --quiet --assume-yes
+  path: $CLOUD_INIT_CRON_UPDATES_FILE
+  owner: root:root
+  permissions: '0755'
+EOF
+	;;
+
+	suse)
+	cat > $CLOUD_INIT_CFG_DIR/30_cron_updates.cfg <<EOF
+write_files:
+- encoding: text/plain
+  path: $CLOUD_INIT_CRON_UPDATES_FILE
+  owner: root:root
+  permissions: '0755'
+- content: |
+    #!/bin/bash
+    zypper update --auto-agree-with-licenses
+EOF
+
+	;;
+esac

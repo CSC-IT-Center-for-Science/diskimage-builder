@@ -2,4 +2,4 @@ gettext
 python
 python-argparse
 python-setuptools
-redhat-lsb
+redhat-lsb-core

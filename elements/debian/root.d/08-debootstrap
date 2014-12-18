@@ -22,6 +22,7 @@ fi
 DISTRO_NAME=${DISTRO_NAME:-debian}
 DIB_RELEASE=${DIB_RELEASE:-unstable}
 DIB_DEBIAN_ALT_INIT_PACKAGE=${DIB_DEBIAN_ALT_INIT_PACKAGE:-sysvinit}
+DIB_DEBOOTSTRAP_EXTRA_ARGS=${DIB_DEBOOTSTRAP_EXTRA_ARGS:-}
 DEBOOTSTRAP_TARBALL=$DIB_IMAGE_CACHE/debootstrap-${DISTRO_NAME}-${DIB_DEBIAN_ALT_INIT_PACKAGE}-${DIB_RELEASE}-${ARCH}.tar.gz
 if [ -n "${DIB_DEBIAN_MIRROR:-}" ]; then
     echo "Use of DIB_DEBIAN_MIRROR environment variable to configure mirror is deprecated."
@@ -48,6 +49,7 @@ else
         --arch=${ARCH} \
         --include=${ADD_PACKAGES} \
         $KEYRING_OPT \
+        $DIB_DEBOOTSTRAP_EXTRA_ARGS \
         $DIB_RELEASE \
         $TARGET_ROOT \
         $DIB_DISTRIBUTION_MIRROR \
@@ -57,12 +59,14 @@ else
     apt_get_bp_extra_opts=
     if [ "$DIB_RELEASE" = "wheezy" ]; then
         sudo sh -c "echo deb $DIB_DISTRIBUTION_MIRROR wheezy-backports main >> ${TARGET_ROOT}/etc/apt/sources.list"
-        sudo chroot ${TARGET_ROOT} apt-get update
         cat << EOF | sudo tee -a ${TARGET_ROOT}/etc/network/interfaces
 source /etc/network/interfaces.d/*
 EOF
         apt_get_bp_extra_opts="-t wheezy-backports"
     fi
+
+    # Need to update to retrieve the signed Release file
+    sudo chroot ${TARGET_ROOT} apt-get update
 
     CLOUD_INIT_PACKAGES="cloud-init cloud-utils cloud-initramfs-growroot"
     sudo sh -c "http_proxy=$http_proxy chroot ${TARGET_ROOT} apt-get install -y $apt_get_bp_extra_opts $CLOUD_INIT_PACKAGES"
@@ -80,9 +84,9 @@ EOF
     sudo install -d -m 0755 -o root -g root ${TARGET_ROOT}/etc/sudoers.d
     sudo sh -c "echo 'debian ALL=(ALL) NOPASSWD:ALL' > ${TARGET_ROOT}/etc/sudoers.d/debian-cloud-init"
     sudo chmod 0440 ${TARGET_ROOT}/etc/sudoers.d/debian-cloud-init
-    sudo sh -c "echo 'proc /proc proc nodev,noexec,nosuid 0 0
-LABEL=cloudimg-rootfs / ext4 errors=remount-ro 0 1
-' > ${TARGET_ROOT}/etc/fstab"
+    sudo sh -c "echo \"proc /proc proc nodev,noexec,nosuid 0 0
+LABEL=${DIB_ROOT_LABEL} / ext4 errors=remount-ro 0 1
+\" > ${TARGET_ROOT}/etc/fstab"
     sudo sh -c "echo 'blacklist pcspkr' > ${TARGET_ROOT}/etc/modprobe.d/blacklist.conf"
     sudo sh -c "echo 'debian' > ${TARGET_ROOT}/etc/hostname"
 

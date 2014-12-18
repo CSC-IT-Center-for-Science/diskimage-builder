@@ -21,7 +21,7 @@ What tools are there?
 * disk-image-create [-a i386|amd64|armhf] -o filename {element} [{element} ...]
   Create an image of element {element}, optionally mixing in other elements.
   Element dependencies are automatically included. Support for other
-  architectures depends on your environment being able to run binaries of that 
+  architectures depends on your environment being able to run binaries of that
   platform. For instance, to enable armhf on Ubuntu install the qemu-user-static
   package. The default output format from disk-image-create is qcow2. To instead
   output a tarball pass in "-t tar". This tarball could then be used as an image
@@ -104,7 +104,7 @@ disk-image-builder for caching. When invoking disk-image-builder the --offline
 option will instruct disk-image-builder to not refresh cached resources.
 
 Note that we don't maintain operating system package caches, instead depending
-on your local infrastructure (e.g. Squid cache, or an APT or Yum proxy) to 
+on your local infrastructure (e.g. Squid cache, or an APT or Yum proxy) to
 facilitate caching of that layer, so you need to arrange independently for
 offline mode.
 
@@ -124,7 +124,14 @@ Install Types
 -------------
 
 Install types permit elements to be installed from different sources, such as
-git repositories, distribution packages, or pip.
+git repositories, distribution packages, or pip. The default install type
+is 'source' but it can be modified on the disk-image-create command line
+via the --install-type option. For example you can set:
+
+    --install-type=package
+
+to enable package installs by default. Alternately, you can also
+set DIB\_DEFAULT\_INSTALLTYPE.
 
 Many elements expose different install types. The different implementations
 live under `<install-dir-prefix>-<install-type>-install` directories under an
@@ -222,7 +229,7 @@ contents can be modelled as three distinct portions:
 The goal of the image building tools is to create machine images that contain
 the correct global content and are ready for 'last-mile' configuration by the
 nova metadata API, after which a configuration management system can take over
-(until the next deploy, when it all starts over from scratch). 
+(until the next deploy, when it all starts over from scratch).
 
 Existing elements
 -----------------
@@ -269,7 +276,7 @@ two-digit numeric prefix, and are executed in numeric order.
 
 * root.d: Create or adapt the initial root filesystem content. This is where
   alternative distribution support is added, or customisations such as
-  building on an existing image. 
+  building on an existing image.
 
   Only one element can use this at a time unless particular care is taken not
   to blindly overwrite but instead to adapt the context extracted by other
@@ -364,19 +371,12 @@ Each element can use the following files to define or affect dependencies:
   file and A and C are included when building an image, then B is not used.
 
 
-### First-boot files ###
-
-* first-boot.d: **DEPRECATED** Runs inside the image before
-  rc.local. Scripts from here are good for doing per-instance
-  configuration based on cloud metadata. **This will be removed in a
-  future release of diskimage-builder. The os-refresh-config element in
-  tripleo-image-elements is recommended as a replacement.**
 
 ### Ramdisk Elements ###
 
 Ramdisk elements support the following files in their element directories:
 
-* binary-deps.d : text files listing executables required to be fed into the 
+* binary-deps.d : text files listing executables required to be fed into the
   ramdisk. These need to be present in $PATH in the build chroot (i.e. need to
   be installed by your elements as described above).
 
@@ -405,6 +405,10 @@ Global image-build variables
   perform remote data access should avoid it if possible. If not possible
   the operation should still be attempted as the user may have an external
   cache able to keep the operation functional.
+
+* DIB\_IMAGE\_ROOT\_FS\_UUID : this contains the UUID of the root fs, when
+  diskimage-builder is building a disk image. This works only for ext
+  filesystems.
 
 Structure of an element
 -----------------------
@@ -435,23 +439,12 @@ possible approach to this would be to label elements as either a "driver",
                10-user             - common Nova user accts
                50-my-pack          - install packages from my PPA
                60-nova             - install nova and some dependencies
-            first-boot.d/
-               60-nova             - do some post-install config for nova
 
 - In the general case, configuration should probably be handled either by the
-  meta-data service (eg, during first-boot.d) or via normal CM tools
+  meta-data service (eg, o-r-c) or via normal CM tools
   (eg, salt). That being said, it may occasionally be desirable to create a
   set of elements which express a distinct configuration of the same software
-  components. For example, if one were to bake a region-specific SSL cert into
-  the images deployed in each region, one might express it like this:
-
-      elements/
-         config-az1/
-            first-boot.d/
-               20-ssl      - add the az1 certificate
-         config-az2/
-            first-boot.d/
-               20-ssl      - add the az2 certificate
+  components.
 
 In this way, depending on the hardware and in which availability zone it is
 to be deployed, an image would be composed of:
@@ -486,8 +479,7 @@ comma-delimited string. Some examples:
 * break=before-block-device-size will break before the block device size hooks
   are called.
 
-* break=after-first-boot,before-pre-install will break after the first-boot
-  hooks and before the pre-install hooks.
+* break=before-pre-install will break before the pre-install hooks.
 
 * break=after-error will break after an error during a in target hookpoint.
 
@@ -531,7 +523,7 @@ Copyright
 =========
 
 Copyright 2012 Hewlett-Packard Development Company, L.P.
-Copyright (c) 2012 NTT DOCOMO, INC. 
+Copyright (c) 2012 NTT DOCOMO, INC.
 
 All Rights Reserved.
 

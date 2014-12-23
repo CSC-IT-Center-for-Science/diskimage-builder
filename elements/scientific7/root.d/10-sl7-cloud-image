@@ -20,16 +20,12 @@ if [ -n "$DIB_LOCAL_IMAGE" ]; then
     BASE_IMAGE_FILE=`basename $DIB_LOCAL_IMAGE`
     BASE_IMAGE_TAR=$BASE_IMAGE_FILE.tgz
 else
-    echo "Currently no Scientific Linux 7 cloud image is publicly available!"
-    exit 1
-
-    DIB_RELEASE=${DIB_RELEASE:-latest}
-    DIB_CLOUD_IMAGES=${DIB_CLOUD_IMAGES:-http://rhn.redhat.com}
-    BASE_IMAGE_FILE=${BASE_IMAGE_FILE:-rhel-guest-image-7.0-20140506.1.x86_64.qcow2}
-    BASE_IMAGE_TAR=$DIB_RELEASE-rhel-server-$ARCH-latest.tgz
+    DIB_RELEASE=${DIB_RELEASE:-7.0-20141223}
+    DIB_CLOUD_IMAGES=${DIB_CLOUD_IMAGES:-http://www.nic.funet.fi/pub/csc/cloud/images}
+    BASE_IMAGE_FILE=${BASE_IMAGE_FILE:-ScientificLinux-${DIB_RELEASE}.${ARCH}.qcow2}
+    BASE_IMAGE_TAR=$BASE_IMAGE_FILE.tgz
     IMAGE_LOCATION=$DIB_CLOUD_IMAGES/$BASE_IMAGE_FILE
     CACHED_IMAGE=$DIB_IMAGE_CACHE/$BASE_IMAGE_FILE
-
 fi
 
 $TMP_HOOKS_PATH/bin/extract-image $BASE_IMAGE_FILE $BASE_IMAGE_TAR $IMAGE_LOCATION $CACHED_IMAGE

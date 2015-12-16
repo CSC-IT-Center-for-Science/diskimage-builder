@@ -12,6 +12,7 @@ set -o pipefail
 
 shopt -s extglob
 
+DIB_LOCAL_IMAGE=${DIB_LOCAL_IMAGE:-}
 DIB_CLOUD_IMAGES=${DIB_CLOUD_IMAGES:-http://cloud-images.ubuntu.com}
 DIB_RELEASE=${DIB_RELEASE:-trusty}
 BASE_IMAGE_FILE=${BASE_IMAGE_FILE:-$DIB_RELEASE-server-cloudimg-$ARCH-root.tar.gz}
@@ -51,11 +52,15 @@ function get_ubuntu_tarball() {
 }
 
 (
-    echo "Getting $CACHED_FILE_LOCK: $(date)"
-    # Wait up to 20 minutes for another process to download
-    if ! flock -w 1200 9 ; then
-        echo "Did not get $CACHED_FILE_LOCK: $(date)"
-        exit 1
+    if [ -n "$DIB_LOCAL_IMAGE" ]; then
+        sudo tar -C $TARGET_ROOT --numeric-owner -xzf $DIB_LOCAL_IMAGE
+    else
+        echo "Getting $CACHED_FILE_LOCK: $(date)"
+        # Wait up to 20 minutes for another process to download
+        if ! flock -w 1200 9 ; then
+            echo "Did not get $CACHED_FILE_LOCK: $(date)"
+            exit 1
+        fi
+        get_ubuntu_tarball
     fi
-    get_ubuntu_tarball
 ) 9> $CACHED_FILE_LOCK

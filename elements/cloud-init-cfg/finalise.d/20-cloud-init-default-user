@@ -1,0 +1,8 @@
+#!/bin/bash
+cat > $CLOUD_INIT_CFG_DIR/20_default_user.cfg <<EOF
+system_info:
+  default_user:
+    name: $CLOUD_INIT_DEFAULT_USER_NAME
+    gecos: Cloud User
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+EOF

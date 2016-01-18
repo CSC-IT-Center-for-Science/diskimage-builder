@@ -1,0 +1,6 @@
+gettext
+python
+python-argparse
+python-setuptools
+redhat-lsb-core
+epel-release

@@ -20,7 +20,7 @@ if [ -n "$DIB_LOCAL_IMAGE" ]; then
     BASE_IMAGE_FILE=`basename $DIB_LOCAL_IMAGE`
     BASE_IMAGE_TAR=$BASE_IMAGE_FILE.tgz
 else
-    DIB_RELEASE=${DIB_RELEASE:-7.0-20141223}
+    DIB_RELEASE=${DIB_RELEASE:-7.0-20160219}
     DIB_CLOUD_IMAGES=${DIB_CLOUD_IMAGES:-http://www.nic.funet.fi/pub/csc/cloud/images}
     BASE_IMAGE_FILE=${BASE_IMAGE_FILE:-ScientificLinux-${DIB_RELEASE}.${ARCH}.qcow2}
     BASE_IMAGE_TAR=$BASE_IMAGE_FILE.tgz

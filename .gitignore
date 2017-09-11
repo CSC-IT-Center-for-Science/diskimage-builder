@@ -5,6 +5,7 @@
 .tox
 *.egg
 *.egg-info
+*.eggs
 dist
 *.qcow2
 *.raw

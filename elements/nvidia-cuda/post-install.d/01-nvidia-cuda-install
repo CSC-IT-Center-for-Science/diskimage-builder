@@ -1,0 +1,11 @@
+#!/bin/bash -lv
+
+if [ "$DISTRO_NAME" = "centos7" ]; then
+    yum install -y vim ntp deltarpm 
+    yum install -y cuda
+else
+    apt-get -y install vim ntp python linux-headers-generic
+    apt-get -y install cuda
+fi
+
+exit 0

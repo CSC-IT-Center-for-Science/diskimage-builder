@@ -1,1 +1,0 @@
-../cloud-init-cfg/README.md

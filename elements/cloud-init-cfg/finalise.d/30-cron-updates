@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "$CLOUD_INIT_CFG_AUTOUPDATE" == "false" ]; then
+  exit
+fi
+
 case "$DISTRO_NAME" in
 	centos|fedora|rhel|rhel7|centos7)
 	cat > $CLOUD_INIT_CFG_DIR/30_cron_updates.cfg <<EOF

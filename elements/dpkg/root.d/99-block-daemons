@@ -9,6 +9,7 @@ set -o pipefail
 [ -n "$TARGET_ROOT" ]
 
 # Prevent package installs from starting daemons
+if [ "$DIB_RELEASE" != "bionic" ]; then
 sudo mv $TARGET_ROOT/sbin/start-stop-daemon $TARGET_ROOT/sbin/start-stop-daemon.REAL
 sudo dd of=$TARGET_ROOT/sbin/start-stop-daemon <<EOF
 #!/bin/sh
@@ -34,3 +35,4 @@ sudo dd of=$TARGET_ROOT/usr/sbin/policy-rc.d <<EOF
 exit 101
 EOF
 sudo chmod 755 $TARGET_ROOT/usr/sbin/policy-rc.d
+fi

@@ -16,4 +16,7 @@ apt_cache_dir=$DIB_IMAGE_CACHE/apt/$DISTRO_NAME
 if [ ! -d $apt_cache_dir ]; then
     mkdir -p $apt_cache_dir
 fi
+if [ ! -d $TARGET_ROOT/var/cache/apt/archives ]; then
+    mkdir -p $TARGET_ROOT/var/cache/apt/archives
+fi
 sudo mount --bind $apt_cache_dir $TARGET_ROOT/var/cache/apt/archives

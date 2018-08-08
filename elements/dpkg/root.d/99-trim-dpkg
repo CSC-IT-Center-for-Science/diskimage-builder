@@ -9,7 +9,9 @@ set -o pipefail
 [ -n "$TARGET_ROOT" ]
 
 # During image build, sync calls are expensive overhead
+sudo mkdir -p $TARGET_ROOT/etc/dpkg/dpkg.cfg.d
 echo 'force-unsafe-io' | sudo tee $TARGET_ROOT/etc/dpkg/dpkg.cfg.d/02apt-speedup > /dev/null
 
 # and remove the translations, too
+sudo mkdir -p $TARGET_ROOT/etc/apt/apt.conf.d
 echo 'Acquire::Languages "none";' | sudo tee $TARGET_ROOT/etc/apt/apt.conf.d/no-languages > /dev/null

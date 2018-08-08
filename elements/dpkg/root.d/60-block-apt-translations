@@ -9,6 +9,7 @@ set -o pipefail
 [ -n "$TARGET_ROOT" ]
 
 # Configure APT not to fetch translations files
+sudo mkdir -p $TARGET_ROOT/etc/apt/apt.conf.d/
 sudo dd of=$TARGET_ROOT/etc/apt/apt.conf.d/95no-translations <<EOF
 Acquire::Languages "none";
 EOF

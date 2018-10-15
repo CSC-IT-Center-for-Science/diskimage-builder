@@ -1,6 +1,7 @@
 #!/bin/bash -lv
 
 if [ "$DISTRO_NAME" = "centos7" ]; then
+    yum update -y
     yum install -y vim ntp deltarpm kernel-devel
     yum install -y cuda
 else

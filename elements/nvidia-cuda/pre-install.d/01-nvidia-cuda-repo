@@ -6,6 +6,7 @@ else
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
     dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
     apt-get update
+    echo 'PATH=/usr/local/cuda/bin:$PATH # So latest NVCC is in $PATH' > /etc/profile.d/csc_cuda_bin.sh
 fi
 
 exit 0

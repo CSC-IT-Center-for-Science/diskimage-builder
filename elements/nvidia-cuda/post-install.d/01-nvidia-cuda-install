@@ -1,9 +1,39 @@
 #!/bin/bash -lv
 
 if [ "$DISTRO_NAME" = "centos7" ]; then
-    yum update -y
+    # First, only update kernel.
+    yum update -y kernel
+    # Then, install kernel-devel to match that kernel.
     yum install -y vim ntp deltarpm kernel-devel
+    # Once kernel and headers are in place, install cuda.
+    # This should pull in the nvidia-driver. If it doesn't
+    # find a matching precompiled kernel module from the
+    # repositories, it will try to use dkms to build a
+    # kmod-nvidia-latest-dkms module that matches the
+    # just now installed kernel and headers.
     yum install -y cuda
+    # The element called "bootloader" should take care of
+    # configuring grub to use the most recent kernel.
+    # For the CentOS-7-Cuda image, this doesn't seem to work.
+    # Even if the newest kernel yum package is installed,
+    # grub still selects the older baseline kernel as default.
+    #
+    # Theory:
+    # This nvidia-cuda element is the *only* element where
+    # a raw "yum update" is being run. So we are probably
+    # astray here in the first place, and possibly should
+    # use some diskimage-builder internal mechanisms to
+    # do yum stuff in a chroot.
+    #
+    # Workaround:
+    # Just set the newest kernel as default manually.
+    # This could probably be a bit more robust, if you want to
+    # get into regex comparison of kernel versions and all
+    # that good stuff.
+    grub2-set-default 0
+    # Now we can update the rest of the packages with moderate
+    # certainty that this will not fudge kernel/headers/drivers.
+    yum update -y
 else
     apt-get -y install vim ntp python linux-headers-generic
     apt-get -y install cuda
